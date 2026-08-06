@@ -1,0 +1,6 @@
+{
+  "name": "AI Sales Agent",
+  "description": "AI-powered Lead Discovery and Outreach platform for automated prospecting, research, scoring, and personalized outreach.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
