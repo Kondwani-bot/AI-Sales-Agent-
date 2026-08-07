@@ -114,7 +114,7 @@ export const NewCampaignView: React.FC = () => {
         leadLimit: finalLimit,
       });
 
-      await startCampaignExecution(newJob.id);
+      await startCampaignExecution(newJob.id, newJob);
       setCurrentView('campaign-details');
     } catch (err) {
       console.error('Error starting AI Job:', err);

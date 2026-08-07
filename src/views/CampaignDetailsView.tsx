@@ -27,6 +27,7 @@ export const CampaignDetailsView: React.FC = () => {
     selectedLeadId,
     setSelectedLeadId,
     setCurrentView,
+    startCampaignExecution,
     pauseCampaign,
     deleteCampaign,
     refreshCampaignDataFromWebhook,
@@ -34,6 +35,13 @@ export const CampaignDetailsView: React.FC = () => {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<'decisionMakers' | 'companies'>('decisionMakers');
+
+  // Auto-start campaign if it's in draft status or stuck at 0%
+  React.useEffect(() => {
+    if (activeCampaign && (activeCampaign.status === 'draft' || activeCampaign.progress === 0)) {
+      startCampaignExecution(activeCampaign.id, activeCampaign);
+    }
+  }, [activeCampaign?.id]);
 
   if (!activeCampaign) {
     return (
@@ -58,15 +66,24 @@ export const CampaignDetailsView: React.FC = () => {
     setIsRefreshing(false);
   };
 
-  // Thinking logs simulated or pulled from campaign execution
-  const thinkingStreamLogs = [
-    { time: '10:00:01', step: 'Knowledge Retrieval', msg: `Querying Business Knowledge Base context...` },
-    { time: '10:00:04', step: 'Target Search', msg: `Searching target domains in ${activeCampaign.targetCountry || 'specified region'}...` },
-    { time: '10:00:08', step: 'Site Scraping', msg: `Scraped website metadata, contact pages, and service offerings...` },
-    { time: '10:00:12', step: 'Opportunity Scoring', msg: `Calculated pain point alignment and lead qualification scores.` },
-    { time: '10:00:15', step: 'Executive Match', msg: `Identified and verified key decision maker profiles and direct emails.` },
-    { time: '10:00:18', step: 'Outreach Generation', msg: `Generated personalized consultative value propositions.` },
-  ];
+  const handleToggleExecution = async () => {
+    if (activeCampaign.status === 'running') {
+      pauseCampaign(activeCampaign.id);
+    } else {
+      await startCampaignExecution(activeCampaign.id, activeCampaign);
+    }
+  };
+
+  const logsToDisplay = activeCampaign.activityLogs && activeCampaign.activityLogs.length > 0
+    ? activeCampaign.activityLogs
+    : [
+        {
+          id: 'init-1',
+          timestamp: new Date().toLocaleTimeString(),
+          message: 'Initializing AI employee knowledge base and target domain search...',
+          type: 'info' as const,
+        },
+      ];
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -104,7 +121,7 @@ export const CampaignDetailsView: React.FC = () => {
           </button>
 
           <button
-            onClick={() => pauseCampaign(activeCampaign.id)}
+            onClick={handleToggleExecution}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs transition-colors"
           >
             {activeCampaign.status === 'running' ? (
@@ -115,7 +132,7 @@ export const CampaignDetailsView: React.FC = () => {
             ) : (
               <>
                 <Play className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Resume</span>
+                <span>{activeCampaign.status === 'completed' ? 'Re-run Job' : 'Start Execution'}</span>
               </>
             )}
           </button>
@@ -136,8 +153,14 @@ export const CampaignDetailsView: React.FC = () => {
           <div className="flex items-center gap-2">
             <Bot className="w-5 h-5 text-blue-400" />
             <div>
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                AI Employee Thinking Stream
+              <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <span>AI Employee Thinking Stream</span>
+                {activeCampaign.status === 'running' && (
+                  <span className="inline-flex items-center gap-1 text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20 font-normal">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                    Executing...
+                  </span>
+                )}
               </h3>
               <p className="text-[11px] text-slate-400">
                 Stage: <span className="text-blue-400 font-semibold">{activeCampaign.currentStage}</span>
@@ -145,10 +168,20 @@ export const CampaignDetailsView: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
-              Live Reasoning
-            </span>
+            {activeCampaign.status === 'running' ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                Live Reasoning
+              </span>
+            ) : (
+              <button
+                onClick={handleToggleExecution}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow-xs transition-all"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>{activeCampaign.status === 'completed' ? 'Re-run Execution' : 'Start Execution'}</span>
+              </button>
+            )}
             <span className="text-lg font-black text-blue-400 ml-2">{activeCampaign.progress}%</span>
           </div>
         </div>
@@ -156,18 +189,20 @@ export const CampaignDetailsView: React.FC = () => {
         {/* Progress Bar */}
         <div className="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
           <div
-            className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
+            className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-500"
             style={{ width: `${activeCampaign.progress}%` }}
           ></div>
         </div>
 
         {/* Thinking Stream Output Window */}
-        <div className="bg-slate-900/90 rounded-xl p-3.5 border border-slate-800/80 font-mono text-[11px] space-y-2 max-h-48 overflow-y-auto leading-relaxed">
-          {thinkingStreamLogs.map((log, idx) => (
-            <div key={idx} className="flex items-start gap-3 text-slate-300">
-              <span className="text-slate-500 shrink-0">{log.time}</span>
-              <span className="text-blue-400 font-semibold shrink-0">[{log.step}]</span>
-              <span className="text-slate-200">{log.msg}</span>
+        <div className="bg-slate-900/90 rounded-xl p-3.5 border border-slate-800/80 font-mono text-[11px] space-y-2 max-h-52 overflow-y-auto leading-relaxed">
+          {logsToDisplay.map((log, idx) => (
+            <div key={`stream-log-${log.id || 'log'}-${idx}`} className="flex items-start gap-3 text-slate-300">
+              <span className="text-slate-500 shrink-0">{log.timestamp}</span>
+              <span className={`font-semibold shrink-0 ${log.type === 'success' ? 'text-emerald-400' : 'text-blue-400'}`}>
+                [{log.type === 'success' ? 'COMPLETE' : 'STEP'}]
+              </span>
+              <span className="text-slate-200">{log.message}</span>
             </div>
           ))}
         </div>
@@ -275,9 +310,9 @@ export const CampaignDetailsView: React.FC = () => {
         ) : (
           /* Company Cards View */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {campaignLeads.map((lead) => (
+            {campaignLeads.map((lead, idx) => (
               <div
-                key={lead.id}
+                key={`comp-card-${lead.id}-${idx}`}
                 onClick={() => setSelectedLeadId(lead.id)}
                 className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs hover:shadow-md transition-all cursor-pointer group space-y-3"
               >

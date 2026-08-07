@@ -39,7 +39,7 @@ interface AppContextType {
   
   // Actions
   createNewCampaign: (campaignData: Partial<Campaign>) => Promise<Campaign>;
-  startCampaignExecution: (campaignId: string) => Promise<void>;
+  startCampaignExecution: (campaignId: string, campaignOverride?: Campaign) => Promise<void>;
   pauseCampaign: (campaignId: string) => void;
   deleteCampaign: (campaignId: string) => void;
   
@@ -292,10 +292,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Execute campaign simulation / API pipeline
-  const startCampaignExecution = async (campaignId: string) => {
-    // Check if webhook is defined
-    const campaign = campaigns.find((c) => c.id === campaignId);
-    if (!campaign) return;
+  const startCampaignExecution = async (campaignId: string, campaignOverride?: Campaign) => {
+    let campaign = campaignOverride || campaigns.find((c) => c.id === campaignId);
+    if (!campaign) {
+      console.warn('Campaign not found for id:', campaignId);
+      return;
+    }
 
     // Send payload to Make.com Webhook if configured
     if (settings.makeWebhookUrl) {
