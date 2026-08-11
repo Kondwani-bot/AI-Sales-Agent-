@@ -225,6 +225,9 @@ export interface AppSettings {
   geminiApiKey?: string;
   makeWebhookUrl: string;
   googleSheetsUrl: string;
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
+  googleAppsScriptUrl?: string;
   gmailConnected: boolean;
   autoSendEmails: boolean;
 }

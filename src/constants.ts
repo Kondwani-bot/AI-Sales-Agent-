@@ -33,6 +33,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   emailSignature: "Alex Rivera\nGrowth Lead | Apex Growth Lab\nalex@apexgrowthlab.io | https://apexgrowthlab.io",
   makeWebhookUrl: 'https://hook.eu1.make.com/39a8bc47-example-lead-webhook',
   googleSheetsUrl: 'https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBSeUEXAMPLE/edit#gid=0',
+  supabaseUrl: 'https://vzgdlcxbbwckdkvqgjeh.supabase.co',
+  supabaseAnonKey: 'sb_publishable_yLii_ofI23zMaokD7bylLQ_wpXdkCzF',
+  googleAppsScriptUrl: '',
   gmailConnected: true,
   autoSendEmails: false,
 };

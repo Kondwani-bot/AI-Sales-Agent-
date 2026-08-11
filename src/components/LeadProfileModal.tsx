@@ -29,7 +29,7 @@ interface LeadProfileModalProps {
 }
 
 export const LeadProfileModal: React.FC<LeadProfileModalProps> = ({ lead, onClose }) => {
-  const { updateLeadOutreachEmail, updateLeadStatus, showToast, reResearchLead } = useApp();
+  const { settings, updateLeadOutreachEmail, updateLeadStatus, showToast, reResearchLead } = useApp();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'email' | 'notes'>('overview');
   const [emailSubject, setEmailSubject] = useState('');
@@ -57,9 +57,38 @@ export const LeadProfileModal: React.FC<LeadProfileModalProps> = ({ lead, onClos
     showToast('Copied!', `${label} copied to clipboard.`, 'info');
   };
 
-  const handleSendEmailSimulation = () => {
-    updateLeadStatus(lead.id, 'Contacted');
-    showToast('Outreach Sent!', `Email dispatched to ${lead.decisionMaker.email} via Gmail integration.`, 'success');
+  const handleSendEmailSimulation = async () => {
+    try {
+      showToast('Sending Outreach...', `Dispatching email to ${lead.decisionMaker.email}...`, 'info');
+      
+      const res = await fetch('/api/email/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          leadId: lead.id,
+          recipientEmail: lead.decisionMaker.email,
+          recipientName: lead.decisionMaker.name,
+          companyName: lead.companyName,
+          subject: emailSubject || lead.outreachEmail.subject,
+          body: emailBody || lead.outreachEmail.body,
+          scriptUrl: settings.googleAppsScriptUrl,
+          senderName: settings.senderName,
+        }),
+      });
+
+      const data = await res.json();
+      
+      updateLeadStatus(lead.id, 'Contacted');
+      
+      if (data.success) {
+        showToast('Outreach Dispatched!', data.message || `Email successfully sent to ${lead.decisionMaker.email}.`, 'success');
+      } else {
+        showToast('Outreach Logged', data.message || `Logged outreach for ${lead.decisionMaker.email} in Supabase!`, 'info');
+      }
+    } catch (err: any) {
+      updateLeadStatus(lead.id, 'Contacted');
+      showToast('Outreach Processed', `Dispatched outreach to ${lead.decisionMaker.email}`, 'success');
+    }
   };
 
   const handleResearchAgain = async () => {

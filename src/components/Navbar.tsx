@@ -58,15 +58,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
             <Sparkles className="w-5 h-5 fill-white/20" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-900 text-base tracking-tight font-sans">
-                {APP_NAME}
-              </span>
-              <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200/60">
-                v2.4 Pro
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-500 hidden sm:block">AI Lead Discovery & Outreach</p>
+            <span className="font-bold text-slate-900 text-base tracking-tight font-sans">
+              {APP_NAME}
+            </span>
           </div>
         </div>
       </div>
@@ -87,18 +81,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleMobileMenu }) => {
 
       {/* Right Controls */}
       <div className="flex items-center gap-2.5">
-        {/* Active Engine Badge */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-medium">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>{activeCampaignsCount > 0 ? `${activeCampaignsCount} Active Run` : 'Engine Ready'}</span>
-        </div>
-
-        {/* Make.com Sync Badge */}
-        <div className="hidden xl:flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
-          <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-          <span>Make.com Hook Connected</span>
-        </div>
-
         {/* CTA Button */}
         <button
           onClick={() => setCurrentView('new-campaign')}

@@ -163,25 +163,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpenMobile, onCloseMobile })
           </div>
         </div>
       </div>
-
-      {/* Footer Banner Info */}
-      <div className="mt-auto pt-4 border-t border-slate-200/80">
-        <div className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-2xl border border-blue-100 text-xs">
-          <div className="flex items-center gap-2 text-blue-800 font-semibold mb-1">
-            <Sparkles className="w-4 h-4 text-blue-600" />
-            <span>Make.com Pipeline</span>
-          </div>
-          <p className="text-[11px] text-slate-600 leading-relaxed mb-2">
-            Campaigns automatically trigger webhooks and sync leads with Google Sheets.
-          </p>
-          <button
-            onClick={() => handleNavClick('settings')}
-            className="w-full py-1.5 px-2 bg-white hover:bg-blue-600 hover:text-white border border-blue-200 text-blue-700 text-[11px] font-semibold rounded-lg transition-colors shadow-2xs"
-          >
-            Configure Webhook URL
-          </button>
-        </div>
-      </div>
     </div>
   );
 
